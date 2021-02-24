@@ -1,0 +1,28 @@
+{
+  "name": "lottery-wheel",
+  "version": "0.0.1",
+  "author": "Przemyslaw Pierzchalka",
+  "description": "Lottery wheel",
+  "main": "dist/lottery-wheel.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack serve --open",
+    "build": "webpack --config webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ppierzchalka/lottery-wheel.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ppierzchalka/lottery-wheel/issues"
+  },
+  "homepage": "https://github.com/ppierzchalka/lottery-wheel#readme",
+  "devDependencies": {
+    "@webpack-cli/init": "^1.1.3",
+    "ts-loader": "^8.0.17",
+    "typescript": "^4.2.2",
+    "webpack": "^5.24.1",
+    "webpack-cli": "^4.5.0"
+  }
+}
