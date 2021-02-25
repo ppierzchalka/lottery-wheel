@@ -8,13 +8,15 @@ module.exports = ["source-map"].map((devtool) => ({
 		rules: [
 			{
 				test: /\.ts?$/,
-				use: ["ts-loader"],
+				use: ["babel-loader", "ts-loader"],
 				exclude: /node_modules/,
 			},
 		],
 	},
 	devServer: {
 		static: ["public"],
+		host: "localhost",
+		port: 2137,
 	},
 	resolve: {
 		extensions: [".ts", ".js"],
@@ -26,6 +28,6 @@ module.exports = ["source-map"].map((devtool) => ({
 		library: "lotteryWheel",
 		libraryTarget: "umd",
 		publicPath: "/",
-    umdNamedDefine: true,
+		umdNamedDefine: true,
 	},
 }));
