@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = ["source-map"].map((devtool) => ({
 	mode: "development",
-	entry: path.resolve(__dirname, "src/library.ts"),
+	entry: ["./src/library"],
 	devtool,
 	module: {
 		rules: [
@@ -14,12 +14,7 @@ module.exports = ["source-map"].map((devtool) => ({
 		],
 	},
 	devServer: {
-		contentBase: ["public", "dist"],
-		compress: true,
-		disableHostCheck: true,
-		inline: true,
-		publicPath: "/",
-		port: 2137,
+		static: ["public"],
 	},
 	resolve: {
 		extensions: [".ts", ".js"],
@@ -28,10 +23,9 @@ module.exports = ["source-map"].map((devtool) => ({
 	output: {
 		path: path.resolve(__dirname, "dist"),
 		filename: "lottery-wheel.js",
-		library: {
-			name: "lotteryWheel",
-			type: "umd",
-		},
+		library: "lotteryWheel",
+		libraryTarget: "umd",
 		publicPath: "/",
+    umdNamedDefine: true,
 	},
 }));
