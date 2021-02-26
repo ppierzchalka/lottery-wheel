@@ -10,7 +10,8 @@
 		"build": "webpack --config webpack.config.js",
 		"lint": "eslint --ext js,ts src",
 		"lint:fix": "eslint --ext js,ts src --fix",
-		"format": "prettier-eslint --write %INIT_CWD%/src/**/*.{js,jsx} && eslint --ext js,ts src --fix"
+		"format": "prettier-eslint --write %INIT_CWD%/src/**/*.{js,jsx} && eslint --ext js,ts src --fix",
+		"postinstall": "husky install"
 	},
 	"repository": {
 		"type": "git",
@@ -22,13 +23,8 @@
 	},
 	"husky": {
 		"hooks": {
-			"pre-commit": "lint-staged"
+			"pre-commit": "yarn format"
 		}
-	},
-	"lint-staged": {
-		"*.{ts,js,json}": [
-			"prettier-eslint --write %INIT_CWD%/src/**/*.{js,jsx} && eslint --ext js,ts src --fix"
-		]
 	},
 	"homepage": "https://github.com/ppierzchalka/lottery-wheel#readme",
 	"devDependencies": {
@@ -50,7 +46,7 @@
 		"eslint-plugin-import": "^2.22.1",
 		"eslint-webpack-plugin": "^2.5.2",
 		"fork-ts-checker-webpack-plugin": "^6.1.0",
-		"husky": "^5.1.1",
+		"husky": "4",
 		"prettier-eslint": "^12.0.0",
 		"prettier-eslint-cli": "^5.0.0",
 		"ts-loader": "^8.0.17",
