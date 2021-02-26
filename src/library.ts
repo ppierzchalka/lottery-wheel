@@ -1,5 +1,3 @@
-import { greetKenobi } from "./greetKenobi";
+import { greetKenobi } from './greetKenobi';
 
 export { greetKenobi };
-
-export const a = 1;

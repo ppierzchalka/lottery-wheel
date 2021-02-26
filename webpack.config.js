@@ -1,14 +1,23 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require("path");
+const ESLintPlugin = require("eslint-webpack-plugin");
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
-module.exports = ["source-map"].map((devtool) => ({
+module.exports = {
 	mode: "development",
 	entry: ["./src/library"],
-	devtool,
+	devtool: "inline-source-map",
 	module: {
 		rules: [
 			{
-				test: /\.ts?$/,
-				use: ["babel-loader", "ts-loader"],
+				test: /\.(ts|js)?$/i,
+				use: {
+					loader: "babel-loader",
+					options: {
+						presets: ["@babel/preset-env", "@babel/preset-typescript"],
+					},
+				},
 				exclude: /node_modules/,
 			},
 		],
@@ -18,6 +27,15 @@ module.exports = ["source-map"].map((devtool) => ({
 		host: "localhost",
 		port: 2137,
 	},
+	plugins: [
+		new CleanWebpackPlugin(),
+		new ESLintPlugin({
+			files: "src/**/*.ts",
+		}),
+		new ForkTsCheckerWebpackPlugin({
+			async: false,
+		}),
+	],
 	resolve: {
 		extensions: [".ts", ".js"],
 		modules: ["src", "node_modules"],
@@ -30,4 +48,4 @@ module.exports = ["source-map"].map((devtool) => ({
 		publicPath: "/",
 		umdNamedDefine: true,
 	},
-}));
+};
