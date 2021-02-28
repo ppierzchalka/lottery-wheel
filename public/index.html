@@ -1,16 +1,137 @@
 <!DOCTYPE html>
 <html>
-  <h>
-    <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
     <title>Lottery wheel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://yarnpkg.com/en/package/normalize.css"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        box-sizing: border-box;
+      }
+      .root {
+        width: 100%;
+        height: 100%;
+        display: flex;
+      }
+      .control-sidebar {
+        width: 200px;
+        height: 100%;
+        border-right: 1px solid black;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar-title,
+      .result-text {
+        text-align: center;
+      }
+      .config-input {
+        margin: 0 0 10px 0;
+        resize: none;
+        flex-grow: 1;
+      }
+
+      .wheel-wrapper {
+        flex-grow: 1;
+      }
+
+      .result-text {
+        margin: 0;
+        padding: 10px;
+        border-bottom: 1px solid black;
+      }
+    </style>
+  </head>
   <body>
-    <div id="root"></div>
+    <div id="root" class="root">
+      <div id="control-sidebar" class="control-sidebar"></div>
+      <div id="wheel-wrapper" class="wheel-wrapper">
+        <div class="result-banner">
+          <p id="result-text" class="result-text">Spin the wheel!</p>
+        </div>
+        <div id="canvas-wrapper" class="canvas-wrapper"></div>
+      </div>
+    </div>
   </body>
   <script src="lottery-wheel.js"></script>
   <script>
-    const root = document.getElementById("root");
-    lotteryWheel.greetKenobi(root);
+    const canvasWrapper = document.getElementById("canvas-wrapper");
+    const controlSidebar = document.getElementById("control-sidebar");
+    let wheel;
+
+    const onSetResult = (text) => {
+      const resultText = document.getElementById("result-text");
+      result.innerHTML = text;
+    };
+
+    const saveConfigToLocalStorage = (value) => {
+      localStorage.setItem("config", JSON.stringify(value));
+    };
+
+    const parseConfig = (json) => {
+      try {
+        const parsed = JSON.parse(json);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(
+            (elem) =>
+              elem.hasOwnProperty("id") && elem.hasOwnProperty("textValue")
+          );
+        }
+      } catch (e) {
+        console.warn(e, "invalid config");
+      }
+      return [];
+    };
+
+    const createWheel = () => {
+      canvasWrapper.innerHTML = "";
+      wheel = lotteryWheel.createWheel(canvasWrapper, {
+        elements: [],
+        onSpinEnd: onSetResult,
+      });
+
+      window.wheelInstance = wheel;
+    };
+
+    controlSidebar.innerHTML = "";
+    const sidebarTitleElem = document.createElement("div");
+    sidebarTitleElem.classList.add("sidebar-title");
+    sidebarTitleElem.innerHTML = `<h4>Wheel control</h4>`;
+    controlSidebar.appendChild(sidebarTitleElem);
+
+    const jsonInputArea = document.createElement("textarea");
+    jsonInputArea.classList.add("config-input");
+    jsonInputArea.placeholder = "paste config here...";
+    jsonInputArea.rows = 20;
+    controlSidebar.appendChild(jsonInputArea);
+    const localStorageConfig = localStorage.getItem("config");
+
+    if (localStorageConfig) {
+      const parsed = parseConfig(localStorageConfig);
+      jsonInputArea.value = JSON.stringify(parsed);
+    }
+    const renderButton = document.createElement("button");
+    renderButton.textContent = "Render wheel";
+    renderButton.onclick = () => {
+      const parsedConfig = parseConfig(jsonInputArea.value);
+      if (!!parsedConfig.length) {
+        saveConfigToLocalStorage(parsedConfig);
+        createWheel(parsedConfig);
+      }
+    };
+
+    controlSidebar.appendChild(renderButton);
   </script>
 </html>

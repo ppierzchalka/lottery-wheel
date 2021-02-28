@@ -1,3 +1,1 @@
-import { greetKenobi } from './greetKenobi';
-
-export { greetKenobi };
+export * from "./Wheel";
