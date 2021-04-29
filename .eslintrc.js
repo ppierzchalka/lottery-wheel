@@ -12,11 +12,14 @@ module.exports = {
   extends: ["airbnb-typescript/base"],
   ignorePatterns: ["dist/*"],
   rules: {
+    "arrow-body-style": "off",
     "import/prefer-default-export": "off",
-    "arrow-body-style": ["warn", "always"],
     "padded-blocks": "off",
-    "@typescript-eslint/semi": "off",
-    "@typescript-eslint/comma-dangle": "off",
+    "no-underscore-dangle": "off",
     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+    "@typescript-eslint/lines-between-class-members": "off",
+    "@typescript-eslint/semi": "off",
+    "@typescript-eslint/quotes": "off",
+    "@typescript-eslint/comma-dangle": "off",
   },
 };
