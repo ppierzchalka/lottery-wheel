@@ -1,3 +1,3 @@
-import { greetKenobi } from './greetKenobi';
+import { createWheel } from "./createWheel";
 
-export { greetKenobi };
+export { createWheel };

@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html>
-  <h>
+  <head>
     <meta charset="utf-8">
     <title>Lottery wheel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+    </div>
   </body>
   <script src="lottery-wheel.js"></script>
   <script>
     const root = document.getElementById("root");
-    lotteryWheel.greetKenobi(root);
+    const wheel = lotteryWheel.createWheel(root);
+
+    window["wheel"] = wheel;
+
+    console.log(wheel);
   </script>
 </html>

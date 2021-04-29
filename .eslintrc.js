@@ -13,5 +13,10 @@ module.exports = {
   ignorePatterns: ["dist/*"],
   rules: {
     "import/prefer-default-export": "off",
+    "arrow-body-style": ["warn", "always"],
+    "padded-blocks": "off",
+    "@typescript-eslint/semi": "off",
+    "@typescript-eslint/comma-dangle": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
   },
 };
