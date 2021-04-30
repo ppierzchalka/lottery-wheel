@@ -1,6 +1,11 @@
 import * as PIXI from "pixi.js";
-import { calculateRadians, calculateRadius } from "../utils";
+import {
+  calculateAngle,
+  calculateLabelPosition,
+  calculateRadius,
+} from "../utils";
 import { validateMembers } from "../utils/validation";
+import { PIXI_APP_DEFAULT_OPTIONS } from "./constants";
 import {
   CompleteLotteryWheelOptions,
   CompleteMember,
@@ -14,7 +19,6 @@ export class LotteryWheel {
   private app: PIXI.Application;
   private wheel: PIXI.Container;
   private radius: number;
-  private radiansPerSection: number;
 
   // private onWheelStop: (winner: Member) => void;
 
@@ -40,7 +44,6 @@ export class LotteryWheel {
     this.wheel = new PIXI.Container();
 
     this.radius = calculateRadius(this.app.renderer);
-    this.radiansPerSection = calculateRadians(this.members.length);
 
     this.createWheel();
     this.mountView(target);
@@ -49,8 +52,7 @@ export class LotteryWheel {
   private createApp = (target: HTMLDivElement) => {
     const application = new PIXI.Application({
       resizeTo: target,
-      antialias: true,
-      transparent: true,
+      ...PIXI_APP_DEFAULT_OPTIONS,
     });
 
     return application;
@@ -71,15 +73,8 @@ export class LotteryWheel {
   private drawSection = (member: CompleteMember, index: number) => {
     const section = new PIXI.Container();
 
-    const startingAngle =
-      index * this.radiansPerSection - this.radiansPerSection / 2;
-    const endingAngle = startingAngle + this.radiansPerSection;
-
-    const sectionSlice = this.drawSectionSlice(
-      member,
-      startingAngle,
-      endingAngle
-    );
+    const angleData = calculateAngle(this.members.length, index);
+    const sectionSlice = this.drawSectionSlice(member, ...angleData);
     const sectionLabel = this.createSectionText(member, index);
 
     section.addChild(sectionSlice);
@@ -112,17 +107,17 @@ export class LotteryWheel {
 
   private createSectionText = (member: CompleteMember, index: number) => {
     const label = new PIXI.Text(member.label, { fill: "#ffffff" });
-    const rotation = this.radiansPerSection * index;
-    const textAnchorPercentage = this.radius / 2 / this.radius;
 
-    label.anchor.set(0.5, 0.5);
-    label.rotation = rotation + Math.PI;
+    const {
+      anchor,
+      rotation,
+      position: { x: posX, y: posY },
+    } = calculateLabelPosition(this.members.length, index, this.radius);
 
-    label.position.x =
-      this.radius + this.radius * textAnchorPercentage * Math.cos(rotation);
-
-    label.position.y =
-      this.radius + this.radius * textAnchorPercentage * Math.sin(rotation);
+    label.anchor.set(...anchor);
+    label.rotation = rotation;
+    label.position.x = posX;
+    label.position.y = posY;
 
     return label;
   };
