@@ -5,21 +5,18 @@ import {
   CompleteLotteryWheelOptions,
   CompleteMember,
   CompleteMembers,
-  Member,
   Members,
 } from "./types";
 
 export class LotteryWheel {
   private members: CompleteMembers;
 
-  private application: PIXI.Application;
-  private sectionGraphic: PIXI.Graphics;
-  private textContainer: PIXI.Container;
+  private app: PIXI.Application;
   private wheel: PIXI.Container;
   private radius: number;
   private radiansPerSection: number;
 
-  private onWheelStop: (winner: Member) => void;
+  // private onWheelStop: (winner: Member) => void;
 
   static create = (
     target: HTMLDivElement,
@@ -37,62 +34,83 @@ export class LotteryWheel {
     options: CompleteLotteryWheelOptions
   ) {
     this.members = options.members;
-    this.onWheelStop = options.onWheelStop;
+    // this.onWheelStop = options.onWheelStop;
 
-    console.log(this.members, this.onWheelStop);
-
-    this.application = this._createApplication(target);
-    this.sectionGraphic = new PIXI.Graphics();
-    this.textContainer = new PIXI.Container();
+    this.app = this.createApp(target);
     this.wheel = new PIXI.Container();
 
-    this.radius = calculateRadius(this.application.renderer);
+    this.radius = calculateRadius(this.app.renderer);
     this.radiansPerSection = calculateRadians(this.members.length);
-    this._createWheel();
-    this._mount(target);
+
+    this.createWheel();
+    this.mountView(target);
   }
 
-  private _createApplication = (target: HTMLDivElement) => {
+  private createApp = (target: HTMLDivElement) => {
     const application = new PIXI.Application({
       resizeTo: target,
       antialias: true,
+      transparent: true,
     });
 
     return application;
   };
 
-  private _createWheel = () => {
-    this._drawSections();
-    this._mountWheel();
+  private createWheel = () => {
+    this.drawSections();
+    this.mountWheel();
   };
 
-  private _drawSections = () => {
+  private drawSections = () => {
     this.members.forEach((member, index) => {
-      this._drawSection(member, index);
+      const section = this.drawSection(member, index);
+      this.wheel.addChild(section);
     });
   };
 
-  private _drawSection = (member: CompleteMember, index: number) => {
+  private drawSection = (member: CompleteMember, index: number) => {
+    const section = new PIXI.Container();
+
     const startingAngle =
       index * this.radiansPerSection - this.radiansPerSection / 2;
     const endingAngle = startingAngle + this.radiansPerSection;
 
-    this.sectionGraphic.beginFill(member.color);
-    this.sectionGraphic.lineStyle(2, 0xffffff, 1);
-    this.sectionGraphic.moveTo(this.radius, this.radius);
-    this.sectionGraphic.arc(
+    const sectionSlice = this.drawSectionSlice(
+      member,
+      startingAngle,
+      endingAngle
+    );
+    const sectionLabel = this.createSectionText(member, index);
+
+    section.addChild(sectionSlice);
+    section.addChild(sectionLabel);
+
+    return section;
+  };
+
+  private drawSectionSlice = (
+    member: CompleteMember,
+    startingAngle: number,
+    endingAngle: number
+  ) => {
+    const slice = new PIXI.Graphics();
+
+    slice.beginFill(member.color);
+    slice.lineStyle(2, 0x000000, 1);
+    slice.moveTo(this.radius, this.radius);
+    slice.arc(
       this.radius,
       this.radius,
       this.radius,
       startingAngle,
       endingAngle
     );
-    this.sectionGraphic.lineTo(this.radius, this.radius);
+    slice.lineTo(this.radius, this.radius);
 
-    this.createSectorText(member, index);
+    return slice;
   };
 
-  private createSectorText = (member: CompleteMember, index: number) => {
+  private createSectionText = (member: CompleteMember, index: number) => {
     const label = new PIXI.Text(member.label, { fill: "#ffffff" });
     const rotation = this.radiansPerSection * index;
     const textAnchorPercentage = this.radius / 2 / this.radius;
@@ -106,24 +124,26 @@ export class LotteryWheel {
     label.position.y =
       this.radius + this.radius * textAnchorPercentage * Math.sin(rotation);
 
-    this.textContainer.addChild(label);
+    return label;
   };
 
-  private _mountWheel = () => {
+  private mountWheel = () => {
     this.wheel.pivot.set(this.radius, this.radius);
     this.wheel.position.set(
-      this.application.renderer.width / 2,
-      this.application.renderer.height / 2
+      this.app.renderer.width / 2,
+      this.app.renderer.height / 2
     );
-    this.wheel.addChild(this.sectionGraphic, this.textContainer);
-    this.application.stage.addChild(this.wheel);
+    this.app.stage.addChild(this.wheel);
   };
 
-  private _mount = (target: HTMLDivElement) => {
-    target.appendChild(this.application.view);
+  private mountView = (target: HTMLDivElement) => {
+    target.appendChild(this.app.view);
+    this.spinWheel();
   };
 
-  // private _spinWheel = () => {
-  //   // TODO: make the wheel move
-  // }
+  private spinWheel = () => {
+    this.app.ticker.add((delta) => {
+      this.wheel.rotation += 0.1 * delta;
+    });
+  };
 }
