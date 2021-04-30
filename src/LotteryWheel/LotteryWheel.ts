@@ -21,7 +21,7 @@ export class LotteryWheel {
   private radius: number;
   private rotationSpeed: number;
 
-  private ticker: ((delta: number) => void) | undefined;
+  private ticker?: PIXI.TickerCallback<any>;
   // private onWheelStop: (winner: Member) => void;
 
   static create = (
@@ -32,7 +32,8 @@ export class LotteryWheel {
   };
 
   public setMembers = (members: Members) => {
-    this.members = validateMembers(members);
+    // this.members = validateMembers(members);
+    console.log("succefully loaded members", validateMembers(members));
   };
 
   private constructor(

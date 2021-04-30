@@ -7,53 +7,17 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div id="root"></div>
+    <div class="members-drawer">
+      <textarea
+        id="members-input"
+        class="members-input"
+        placeholder="Provide members in json array..."
+      ></textarea>
+      <button id="submit-button">Load members</button>
+    </div>
+    <div id="root" class="root"></div>
   </body>
   <script src="lottery-wheel.js"></script>
-  <script>
-    const members = [
-      {
-        id: 1,
-        label: "Alger Carline",
-      },
-      {
-        id: 2,
-        label: "Hayden Tate",
-      },
-      {
-        id: 3,
-        label: "Darell Benson",
-      },
-      {
-        id: 4,
-        label: "Elaine Lamb",
-      },
-      {
-        id: 5,
-        label: "Irene Bates",
-      },
-      {
-        id: 6,
-        label: "Ivy Boyd",
-      },
-      {
-        id: 7,
-        label: "Alanna Pauley",
-      },
-      {
-        id: 8,
-        label: "Christian Cummings",
-      },
-    ];
-
-    const root = document.getElementById("root");
-    const wheel = lotteryWheel.createWheel(root, {
-      members,
-      onWheelStop: alert,
-    });
-
-    window["wheel"] = wheel;
-
-    console.log(wheel);
-  </script>
+  <script src="initialMembers.js"></script>
+  <script src="demo.js"></script>
 </html>

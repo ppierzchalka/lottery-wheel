@@ -9,5 +9,5 @@ module.exports = {
     project: "./tsconfig.json",
   },
   plugins: ["@typescript-eslint"],
-  ignorePatterns: ["dist/*"],
+  ignorePatterns: ["dist/*", "public/*"],
 };
