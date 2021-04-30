@@ -39,7 +39,6 @@ export class LotteryWheel {
     this.members = options.members;
     this.onWheelStop = options.onWheelStop;
 
-    // eslint-disable-next-line no-console
     console.log(this.members, this.onWheelStop);
 
     this.application = this._createApplication(target);
