@@ -1,6 +1,15 @@
-import { Member, Members } from "../../LotteryWheel";
+import {
+  CompleteMember,
+  CompleteMembers,
+  Member,
+  Members,
+} from "../../LotteryWheel";
+import { getRandomColor } from "../getRandomColor";
 
-const validateMember = (member: any, index: number): member is Member => {
+const validateMember = (
+  member: any,
+  index: number
+): member is CompleteMember => {
   if (!("id" in member)) {
     throw new Error(`Member on index ${index} does not have id provided`);
   }
@@ -25,14 +34,24 @@ const hasDuplicatedId = (
   return false;
 };
 
-export const validateMembers = (members: Members): Members => {
-  return members.reduce<Members>(
-    (validatedMembers: Members, member: any, index: number) => {
+const addMemberColor = (member: Member): CompleteMember => {
+  if (!member.color) {
+    return {
+      ...member,
+      color: getRandomColor(),
+    };
+  }
+  return member as CompleteMember;
+};
+
+export const validateMembers = (members: Members): CompleteMembers => {
+  return members.reduce<CompleteMembers>(
+    (validatedMembers: CompleteMembers, member: Member, index: number) => {
       if (
         validateMember(member, index) &&
         !hasDuplicatedId(validatedMembers, member)
       ) {
-        return [...validatedMembers, member];
+        return [...validatedMembers, addMemberColor(member)];
       }
 
       return validatedMembers;

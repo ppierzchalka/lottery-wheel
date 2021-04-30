@@ -7,10 +7,5 @@ export const createWheel = (
   options: LotteryWheelOptions
 ): LotteryWheel => {
   sayHello();
-
-  const validatedOptions = validateOptions(options);
-
-  const wheel = LotteryWheel.create(target, validatedOptions);
-
-  return wheel;
+  return LotteryWheel.create(target, validateOptions(options));
 };
