@@ -19,7 +19,9 @@ export class LotteryWheel {
   private app: PIXI.Application;
   private wheel: PIXI.Container;
   private radius: number;
+  private rotationSpeed: number;
 
+  private ticker: ((delta: number) => void) | undefined;
   // private onWheelStop: (winner: Member) => void;
 
   static create = (
@@ -44,6 +46,7 @@ export class LotteryWheel {
     this.wheel = new PIXI.Container();
 
     this.radius = calculateRadius(this.app.renderer);
+    this.rotationSpeed = Math.random();
 
     this.createWheel();
     this.mountView(target);
@@ -137,8 +140,17 @@ export class LotteryWheel {
   };
 
   private spinWheel = () => {
-    this.app.ticker.add((delta) => {
-      this.wheel.rotation += 0.1 * delta;
-    });
+    this.ticker = (delta) => {
+      this.wheel.rotation += this.rotationSpeed * delta;
+
+      this.rotationSpeed =
+        this.rotationSpeed > 0.0001 ? this.rotationSpeed * 0.99 : 0;
+
+      if (this.rotationSpeed === 0 && this.ticker) {
+        this.app.ticker.remove(this.ticker);
+      }
+    };
+
+    this.app.ticker.add(this.ticker);
   };
 }
