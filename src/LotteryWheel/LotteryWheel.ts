@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
 import { Section } from "../Section";
+import { WheelAdditionalShapes } from "../WheelAdditionalShapes";
 import { CalculationUtils, sayHello } from "../utils";
 import { ValidationUtils } from "../utils/ValidationUtils";
 import { PIXI_APP_DEFAULT_OPTIONS } from "./constants";
@@ -62,8 +63,14 @@ export class LotteryWheel {
 
   private createWheel = () => {
     this.wheel = new PIXI.Container();
-    const sections = this.getSections();
-    this.wheel.addChild(...sections);
+    const sections = this.createSections();
+    const center = WheelAdditionalShapes.createCenterCircle(
+      this.calculationUtils.radius
+    );
+    const outerRing = WheelAdditionalShapes.createOuterRing(
+      this.calculationUtils.radius
+    );
+    this.wheel.addChild(...sections, center, outerRing);
 
     this.mountWheel(this.wheel);
   };
@@ -72,7 +79,7 @@ export class LotteryWheel {
     this.wheel && this.wheel.destroy();
   };
 
-  private getSections = (): PIXI.Container[] => {
+  private createSections = (): PIXI.Container[] => {
     const sectionGetter = Section.createSectionGetter(this.calculationUtils);
     return this.members.map(sectionGetter);
   };

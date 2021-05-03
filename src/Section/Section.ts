@@ -45,7 +45,6 @@ export namespace Section {
     const slice = new PIXI.Graphics();
 
     slice.beginFill(member.color);
-    slice.lineStyle(2, 0x000000, 1);
     slice.moveTo(radius, radius);
     slice.arc(radius, radius, radius, startingAngle, endingAngle);
     slice.lineTo(radius, radius);
@@ -60,7 +59,13 @@ export namespace Section {
     index: number
   ): PIXI.Container => {
     const { calculateSectionLabelPosition } = calculationUtils;
-    const label = new PIXI.Text(member.label, { fill: "#000000" });
+    const label = new PIXI.Text(member.label, {
+      fontFamily: "Helvetica, Arial, sans-serif",
+      fill: "white",
+      fontVariant: "small-caps",
+      stroke: "#000000",
+      strokeThickness: 4,
+    });
 
     const {
       anchor,

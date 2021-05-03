@@ -59,6 +59,8 @@
     "webpack-dev-server": "^4.0.0-beta.0"
   },
   "dependencies": {
+    "@pixi/graphics-extras": "^6.0.2",
+    "pixi-filters": "^4.1.0",
     "pixi.js": "^6.0.2"
   }
 }

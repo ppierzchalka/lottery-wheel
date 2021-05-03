@@ -6,7 +6,7 @@ import {
   Member,
   Members,
 } from "../LotteryWheel";
-import { getRandomColor } from "./getRandomColor";
+import { getColor } from "./getColors";
 
 export namespace ValidationUtils {
   export const validateOptions = (
@@ -25,7 +25,7 @@ export namespace ValidationUtils {
           validateMember(member, index) &&
           !hasDuplicatedId(validatedMembers, member)
         ) {
-          return [...validatedMembers, addMemberColor(member)];
+          return [...validatedMembers, addMemberColor(member, index)];
         }
 
         return validatedMembers;
@@ -64,11 +64,11 @@ export namespace ValidationUtils {
     return false;
   };
 
-  const addMemberColor = (member: Member): CompleteMember => {
+  const addMemberColor = (member: Member, index: number): CompleteMember => {
     if (!member.color) {
       return {
         ...member,
-        color: getRandomColor(),
+        color: getColor(index),
       };
     }
     return member as CompleteMember;
