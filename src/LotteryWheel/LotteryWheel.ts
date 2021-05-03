@@ -1,9 +1,6 @@
 import * as PIXI from "pixi.js";
-import {
-  calculateAngle,
-  calculateLabelPosition,
-  calculateRadius,
-} from "../utils";
+import { calculateRadius } from "../utils";
+import { createSectionText, drawSectionSlice } from "../utils/drawingUtils";
 import { validateMembers } from "../utils/validation";
 import { PIXI_APP_DEFAULT_OPTIONS } from "./constants";
 import {
@@ -14,15 +11,14 @@ import {
 } from "./types";
 
 export class LotteryWheel {
+  private application: PIXI.Application;
+  private wheel?: PIXI.Container;
+  private container: HTMLDivElement;
   private members: CompleteMembers;
-
-  private app: PIXI.Application;
-  private wheel: PIXI.Container;
   private radius: number;
-  private rotationSpeed: number;
 
+  private rotationStart?: VoidFunction;
   private ticker?: PIXI.TickerCallback<any>;
-  // private onWheelStop: (winner: Member) => void;
 
   static create = (
     target: HTMLDivElement,
@@ -32,54 +28,65 @@ export class LotteryWheel {
   };
 
   public setMembers = (members: Members) => {
-    // this.members = validateMembers(members);
-    console.log("succefully loaded members", validateMembers(members));
+    this.members = validateMembers(members);
+    this.destroyWheel();
+    this.createWheel();
   };
 
   private constructor(
     target: HTMLDivElement,
     options: CompleteLotteryWheelOptions
   ) {
+    this.container = target;
     this.members = options.members;
-    // this.onWheelStop = options.onWheelStop;
 
-    this.app = this.createApp(target);
-    this.wheel = new PIXI.Container();
-
-    this.radius = calculateRadius(this.app.renderer);
-    this.rotationSpeed = Math.random();
-
-    this.createWheel();
-    this.mountView(target);
-  }
-
-  private createApp = (target: HTMLDivElement) => {
-    const application = new PIXI.Application({
-      resizeTo: target,
+    this.application = new PIXI.Application({
+      resizeTo: this.container,
       ...PIXI_APP_DEFAULT_OPTIONS,
     });
 
-    return application;
-  };
+    this.radius = calculateRadius(this.application.renderer);
+    this.container.appendChild(this.application.view);
+
+    this.createWheel();
+  }
 
   private createWheel = () => {
-    this.drawSections();
-    this.mountWheel();
+    this.wheel = new PIXI.Container();
+    const sections = this.getSections();
+    this.wheel.addChild(...sections);
+
+    this.mountWheel(this.wheel);
   };
 
-  private drawSections = () => {
-    this.members.forEach((member, index) => {
-      const section = this.drawSection(member, index);
-      this.wheel.addChild(section);
+  private destroyWheel = () => {
+    this.wheel && this.wheel.destroy();
+  };
+
+  private getSections = (): PIXI.Container[] => {
+    return this.members.map((member, index) => {
+      return this.createSection(member, index);
     });
   };
 
-  private drawSection = (member: CompleteMember, index: number) => {
+  private createSection = (
+    member: CompleteMember,
+    index: number
+  ): PIXI.Container => {
     const section = new PIXI.Container();
 
-    const angleData = calculateAngle(this.members.length, index);
-    const sectionSlice = this.drawSectionSlice(member, ...angleData);
-    const sectionLabel = this.createSectionText(member, index);
+    const sectionSlice = drawSectionSlice(
+      member,
+      this.radius,
+      this.members.length,
+      index
+    );
+    const sectionLabel = createSectionText(
+      member,
+      this.radius,
+      this.members.length,
+      index
+    );
 
     section.addChild(sectionSlice);
     section.addChild(sectionLabel);
@@ -87,71 +94,36 @@ export class LotteryWheel {
     return section;
   };
 
-  private drawSectionSlice = (
-    member: CompleteMember,
-    startingAngle: number,
-    endingAngle: number
-  ) => {
-    const slice = new PIXI.Graphics();
-
-    slice.beginFill(member.color);
-    slice.lineStyle(2, 0x000000, 1);
-    slice.moveTo(this.radius, this.radius);
-    slice.arc(
-      this.radius,
-      this.radius,
-      this.radius,
-      startingAngle,
-      endingAngle
+  private mountWheel = (wheel: PIXI.Container) => {
+    wheel.pivot.set(this.radius, this.radius);
+    wheel.position.set(
+      this.application.renderer.width / 2,
+      this.application.renderer.height / 2
     );
-    slice.lineTo(this.radius, this.radius);
+    this.application.stage.addChild(wheel);
 
-    return slice;
+    this.rotationStart = () => {
+      const rotationSpeed = Math.random(); //TODO: This is temporary
+      this.spinWheel(rotationSpeed);
+    };
+
+    this.container.addEventListener("click", this.rotationStart);
   };
 
-  private createSectionText = (member: CompleteMember, index: number) => {
-    const label = new PIXI.Text(member.label, { fill: "#ffffff" });
+  private spinWheel = (initialRotationSpeed: number) => {
+    let rotationSpeed = initialRotationSpeed;
 
-    const {
-      anchor,
-      rotation,
-      position: { x: posX, y: posY },
-    } = calculateLabelPosition(this.members.length, index, this.radius);
-
-    label.anchor.set(...anchor);
-    label.rotation = rotation;
-    label.position.x = posX;
-    label.position.y = posY;
-
-    return label;
-  };
-
-  private mountWheel = () => {
-    this.wheel.pivot.set(this.radius, this.radius);
-    this.wheel.position.set(
-      this.app.renderer.width / 2,
-      this.app.renderer.height / 2
-    );
-    this.app.stage.addChild(this.wheel);
-  };
-
-  private mountView = (target: HTMLDivElement) => {
-    target.appendChild(this.app.view);
-    this.spinWheel();
-  };
-
-  private spinWheel = () => {
     this.ticker = (delta) => {
-      this.wheel.rotation += this.rotationSpeed * delta;
+      if (this.wheel) {
+        this.wheel.rotation += rotationSpeed * delta;
+        rotationSpeed = rotationSpeed > 0.0001 ? rotationSpeed * 0.99 : 0;
+      }
 
-      this.rotationSpeed =
-        this.rotationSpeed > 0.0001 ? this.rotationSpeed * 0.99 : 0;
-
-      if (this.rotationSpeed === 0 && this.ticker) {
-        this.app.ticker.remove(this.ticker);
+      if (this.ticker && (rotationSpeed === 0 || !this.wheel)) {
+        this.application.ticker.remove(this.ticker);
       }
     };
 
-    this.app.ticker.add(this.ticker);
+    this.wheel && this.application.ticker.add(this.ticker);
   };
 }

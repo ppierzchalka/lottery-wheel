@@ -3,7 +3,7 @@ const wheel = lotteryWheel.createWheel(root, {
   members,
   onWheelStop: alert,
 });
-window["wheel"] = wheel;
+window["lotteryWheel"] = wheel;
 
 const jsonValidation = (json) => {
   try {
@@ -39,3 +39,5 @@ const submitMembers = () => {
 
 const submitBtn = document.getElementById("submit-button");
 submitBtn.addEventListener("click", submitMembers);
+
+console.log(window.lotteryWheel);
