@@ -1,3 +1,3 @@
 export * from "./getRandomColor";
-export * from "./mathOperations";
+export * from "./CalculateUtils";
 export * from "./sayHello";

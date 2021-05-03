@@ -1,14 +1,9 @@
 import * as PIXI from "pixi.js";
-import { calculateRadius } from "../utils";
-import { createSectionText, drawSectionSlice } from "../utils/drawingUtils";
-import { validateMembers } from "../utils/validation";
+import { Section } from "../Section";
+import { CalculateUtils } from "../utils";
+import { ValidationUtils } from "../utils/ValidationUtils";
 import { PIXI_APP_DEFAULT_OPTIONS } from "./constants";
-import {
-  CompleteLotteryWheelOptions,
-  CompleteMember,
-  CompleteMembers,
-  Members,
-} from "./types";
+import { CompleteLotteryWheelOptions, CompleteMembers, Members } from "./types";
 
 export class LotteryWheel {
   private application: PIXI.Application;
@@ -28,7 +23,7 @@ export class LotteryWheel {
   };
 
   public setMembers = (members: Members) => {
-    this.members = validateMembers(members);
+    this.members = ValidationUtils.validateMembers(members);
     this.destroyWheel();
     this.createWheel();
   };
@@ -45,7 +40,7 @@ export class LotteryWheel {
       ...PIXI_APP_DEFAULT_OPTIONS,
     });
 
-    this.radius = calculateRadius(this.application.renderer);
+    this.radius = CalculateUtils.calculateRadius(this.application.renderer);
     this.container.appendChild(this.application.view);
 
     this.createWheel();
@@ -65,33 +60,13 @@ export class LotteryWheel {
 
   private getSections = (): PIXI.Container[] => {
     return this.members.map((member, index) => {
-      return this.createSection(member, index);
+      return Section.getSection(
+        member,
+        this.radius,
+        this.members.length,
+        index
+      );
     });
-  };
-
-  private createSection = (
-    member: CompleteMember,
-    index: number
-  ): PIXI.Container => {
-    const section = new PIXI.Container();
-
-    const sectionSlice = drawSectionSlice(
-      member,
-      this.radius,
-      this.members.length,
-      index
-    );
-    const sectionLabel = createSectionText(
-      member,
-      this.radius,
-      this.members.length,
-      index
-    );
-
-    section.addChild(sectionSlice);
-    section.addChild(sectionLabel);
-
-    return section;
   };
 
   private mountWheel = (wheel: PIXI.Container) => {
