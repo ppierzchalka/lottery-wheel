@@ -1,5 +1,5 @@
 const root = document.getElementById("root");
-const wheel = lotteryWheel.createWheel(root, {
+const wheel = lotteryWheel.LotteryWheel.create(root, {
   members,
   onWheelStop: alert,
 });

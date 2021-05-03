@@ -1,29 +1,37 @@
 import * as PIXI from "pixi.js";
 import { Section } from "../Section";
-import { CalculateUtils } from "../utils";
+import { CalculationUtils, sayHello } from "../utils";
 import { ValidationUtils } from "../utils/ValidationUtils";
 import { PIXI_APP_DEFAULT_OPTIONS } from "./constants";
-import { CompleteLotteryWheelOptions, CompleteMembers, Members } from "./types";
+import {
+  LotteryWheelOptions,
+  CompleteLotteryWheelOptions,
+  CompleteMembers,
+  Members,
+} from "./types";
 
 export class LotteryWheel {
   private application: PIXI.Application;
   private wheel?: PIXI.Container;
   private container: HTMLDivElement;
   private members: CompleteMembers;
-  private radius: number;
-
-  private rotationStart?: VoidFunction;
+  private radius: number = 0;
+  private rotationSpeed: number = 0;
+  private calculationUtils: CalculationUtils;
   private ticker?: PIXI.TickerCallback<any>;
 
-  static create = (
-    target: HTMLDivElement,
-    options: CompleteLotteryWheelOptions
-  ) => {
-    return new LotteryWheel(target, options);
+  static create = (target: HTMLDivElement, options: LotteryWheelOptions) => {
+    return new LotteryWheel(target, ValidationUtils.validateOptions(options));
   };
 
   public setMembers = (members: Members) => {
     this.members = ValidationUtils.validateMembers(members);
+    this.rotationSpeed = 0;
+    this.calculationUtils = CalculationUtils.createCalculationUtils(
+      this.application.renderer,
+      this.members.length
+    );
+    this.radius = this.calculationUtils.radius;
     this.destroyWheel();
     this.createWheel();
   };
@@ -39,11 +47,17 @@ export class LotteryWheel {
       resizeTo: this.container,
       ...PIXI_APP_DEFAULT_OPTIONS,
     });
+    sayHello();
 
-    this.radius = CalculateUtils.calculateRadius(this.application.renderer);
     this.container.appendChild(this.application.view);
 
+    this.calculationUtils = CalculationUtils.createCalculationUtils(
+      this.application.renderer,
+      this.members.length
+    );
+    this.radius = this.calculationUtils.radius;
     this.createWheel();
+    this.createAppTicker();
   }
 
   private createWheel = () => {
@@ -59,14 +73,8 @@ export class LotteryWheel {
   };
 
   private getSections = (): PIXI.Container[] => {
-    return this.members.map((member, index) => {
-      return Section.getSection(
-        member,
-        this.radius,
-        this.members.length,
-        index
-      );
-    });
+    const sectionGetter = Section.createSectionGetter(this.calculationUtils);
+    return this.members.map(sectionGetter);
   };
 
   private mountWheel = (wheel: PIXI.Container) => {
@@ -76,29 +84,21 @@ export class LotteryWheel {
       this.application.renderer.height / 2
     );
     this.application.stage.addChild(wheel);
-
-    this.rotationStart = () => {
-      const rotationSpeed = Math.random(); //TODO: This is temporary
-      this.spinWheel(rotationSpeed);
-    };
-
-    this.container.addEventListener("click", this.rotationStart);
   };
 
-  private spinWheel = (initialRotationSpeed: number) => {
-    let rotationSpeed = initialRotationSpeed;
-
+  private createAppTicker = () => {
     this.ticker = (delta) => {
       if (this.wheel) {
-        this.wheel.rotation += rotationSpeed * delta;
-        rotationSpeed = rotationSpeed > 0.0001 ? rotationSpeed * 0.99 : 0;
-      }
-
-      if (this.ticker && (rotationSpeed === 0 || !this.wheel)) {
-        this.application.ticker.remove(this.ticker);
+        this.wheel.rotation += this.rotationSpeed * delta;
+        this.rotationSpeed =
+          this.rotationSpeed > 0.0001 ? this.rotationSpeed * 0.99 : 0;
       }
     };
 
-    this.wheel && this.application.ticker.add(this.ticker);
+    this.application.ticker.add(this.ticker);
+  };
+
+  public spinWheel = (rotationSpeed?: number) => {
+    this.rotationSpeed = rotationSpeed || Math.random();
   };
 }

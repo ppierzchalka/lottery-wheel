@@ -1,35 +1,47 @@
-import { CompleteMember } from "../LotteryWheel";
 import * as PIXI from "pixi.js";
-import { CalculateUtils } from "../utils";
+import { CompleteMember } from "../LotteryWheel";
+import { CalculationUtils } from "../utils";
+
+export type SectionGetter = (
+  member: CompleteMember,
+  index: number
+) => PIXI.Container;
+export type SliceGetterFn = (
+  member: CompleteMember,
+  index: number
+) => PIXI.Graphics;
+export type LabelGetterFn = (
+  member: CompleteMember,
+  index: number
+) => PIXI.Container;
 
 export namespace Section {
-  export const getSection = (
-    member: CompleteMember,
-    radius: number,
-    membersCount: number,
-    index: number
-  ) => {
-    const section = new PIXI.Container();
+  export const createSectionGetter = (
+    calculationUtils: CalculationUtils
+  ): SectionGetter => {
+    const sliceGetter = createSliceGetter(calculationUtils);
+    const labelGetter = createLabelGetter(calculationUtils);
+    return (member: CompleteMember, index: number): PIXI.Container => {
+      const section = new PIXI.Container();
 
-    const sectionSlice = drawSlice(member, radius, membersCount, index);
-    const sectionLabel = createText(member, radius, membersCount, index);
+      const sectionSlice = sliceGetter(member, index);
+      const sectionLabel = labelGetter(member, index);
 
-    section.addChild(sectionSlice);
-    section.addChild(sectionLabel);
+      section.addChild(sectionSlice);
+      section.addChild(sectionLabel);
 
-    return section;
+      return section;
+    };
   };
 
-  const drawSlice = (
+  const createSliceGetter = (
+    calculationUtils: CalculationUtils
+  ): SliceGetterFn => (
     member: CompleteMember,
-    radius: number,
-    membersCount: number,
     index: number
-  ) => {
-    const [startingAngle, endingAngle] = CalculateUtils.calculateAngle(
-      membersCount,
-      index
-    );
+  ): PIXI.Graphics => {
+    const { radius, calculateSectionAngle } = calculationUtils;
+    const [startingAngle, endingAngle] = calculateSectionAngle(index);
     const slice = new PIXI.Graphics();
 
     slice.beginFill(member.color);
@@ -41,19 +53,20 @@ export namespace Section {
     return slice;
   };
 
-  const createText = (
+  const createLabelGetter = (
+    calculationUtils: CalculationUtils
+  ): LabelGetterFn => (
     member: CompleteMember,
-    radius: number,
-    membersCount: number,
     index: number
-  ) => {
-    const label = new PIXI.Text(member.label, { fill: "#ffffff" });
+  ): PIXI.Container => {
+    const { calculateSectionLabelPosition } = calculationUtils;
+    const label = new PIXI.Text(member.label, { fill: "#000000" });
 
     const {
       anchor,
       rotation,
       position: { x: posX, y: posY },
-    } = CalculateUtils.calculateLabelPosition(membersCount, index, radius);
+    } = calculateSectionLabelPosition(index);
 
     label.anchor.set(...anchor);
     label.rotation = rotation;

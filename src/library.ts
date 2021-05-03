@@ -1,3 +1,3 @@
-import { createWheel } from "./createWheel";
+import { LotteryWheel, LotteryWheelOptions } from "./LotteryWheel";
 
-export { createWheel };
+export { LotteryWheel, LotteryWheelOptions };
