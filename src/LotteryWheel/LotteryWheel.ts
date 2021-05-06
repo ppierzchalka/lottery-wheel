@@ -1,25 +1,30 @@
 import * as PIXI from "pixi.js";
 import { Section } from "../Section";
-import { WheelAdditionalShapes } from "../WheelAdditionalShapes";
 import { CalculationUtils, sayHello } from "../utils";
+import { hitTest } from "../utils/hitTest";
 import { ValidationUtils } from "../utils/ValidationUtils";
+import { WheelAdditionalShapes } from "../WheelAdditionalShapes";
 import { PIXI_APP_DEFAULT_OPTIONS } from "./constants";
 import {
-  LotteryWheelOptions,
   CompleteLotteryWheelOptions,
   CompleteMembers,
+  LotteryWheelOptions,
   Members,
 } from "./types";
 
 export class LotteryWheel {
   private application: PIXI.Application;
-  private wheel?: PIXI.Container;
+  private wheelBody?: PIXI.Container;
+  private wheelHousing?: PIXI.Container;
   private container: HTMLDivElement;
   private members: CompleteMembers;
   private radius: number = 0;
   private rotationSpeed: number = 0;
   private calculationUtils: CalculationUtils;
-  private ticker?: PIXI.TickerCallback<any>;
+  private pointerArrow: PIXI.Container | null = null;
+  private memberSections: PIXI.Container[] = [];
+  private appTicker: PIXI.Ticker | null = null;
+  private tickerCallback?: PIXI.TickerCallback<any>;
 
   static create = (target: HTMLDivElement, options: LotteryWheelOptions) => {
     return new LotteryWheel(target, ValidationUtils.validateOptions(options));
@@ -34,7 +39,8 @@ export class LotteryWheel {
     );
     this.radius = this.calculationUtils.radius;
     this.destroyWheel();
-    this.createWheel();
+    this.createWheelBody();
+    this.createWheelHousing();
   };
 
   private constructor(
@@ -57,26 +63,39 @@ export class LotteryWheel {
       this.members.length
     );
     this.radius = this.calculationUtils.radius;
-    this.createWheel();
+    this.createWheelBody();
+    this.createWheelHousing();
     this.createAppTicker();
   }
 
-  private createWheel = () => {
-    this.wheel = new PIXI.Container();
+  private createWheelBody = () => {
+    this.wheelBody = new PIXI.Container();
     const sections = this.createSections();
-    const center = WheelAdditionalShapes.createCenterCircle(
+    this.memberSections = sections;
+    this.wheelBody.addChild(...sections);
+    this.mountWheel(this.wheelBody);
+  };
+
+  private createWheelHousing = () => {
+    this.wheelHousing = new PIXI.Container();
+
+    const axis = WheelAdditionalShapes.createCenterCircle(
       this.calculationUtils.radius
     );
     const outerRing = WheelAdditionalShapes.createOuterRing(
       this.calculationUtils.radius
     );
-    this.wheel.addChild(...sections, center, outerRing);
-
-    this.mountWheel(this.wheel);
+    const pointerArrow = WheelAdditionalShapes.createPointerArrow(
+      this.calculationUtils.radius
+    );
+    this.pointerArrow = pointerArrow;
+    this.wheelHousing.addChild(axis, outerRing, pointerArrow);
+    this.mountWheel(this.wheelHousing);
   };
 
   private destroyWheel = () => {
-    this.wheel && this.wheel.destroy();
+    this.wheelBody && this.wheelBody.destroy();
+    this.wheelHousing && this.wheelHousing.destroy();
   };
 
   private createSections = (): PIXI.Container[] => {
@@ -94,18 +113,42 @@ export class LotteryWheel {
   };
 
   private createAppTicker = () => {
-    this.ticker = (delta) => {
-      if (this.wheel) {
-        this.wheel.rotation += this.rotationSpeed * delta;
-        this.rotationSpeed =
-          this.rotationSpeed > 0.0001 ? this.rotationSpeed * 0.99 : 0;
+    this.appTicker = PIXI.Ticker.shared;
+    this.appTicker.autoStart = false;
+
+    this.tickerCallback = (delta) => {
+      if (this.wheelBody) {
+        if (this.rotationSpeed > 0) {
+          this.wheelBody.rotation += this.rotationSpeed * delta;
+          this.rotationSpeed =
+            this.rotationSpeed > 0.0001 ? this.rotationSpeed * 0.99 : 0;
+        } else if (this.rotationSpeed === 0 && this.appTicker?.started) {
+          const hit = this.memberSections?.reduce<PIXI.Container | null>(
+            (result, section) => {
+              if (this.pointerArrow) {
+                if (hitTest(section, this.pointerArrow)) {
+                  return section;
+                }
+              }
+              return result;
+            },
+            null
+          );
+
+          hit && console.log((hit?.children[1] as any)?._text);
+          this.appTicker?.stop();
+        }
       }
     };
-
-    this.application.ticker.add(this.ticker);
   };
 
   public spinWheel = (rotationSpeed?: number) => {
-    this.rotationSpeed = rotationSpeed || Math.random();
+    if (!this.appTicker?.started && this.tickerCallback) {
+      this.rotationSpeed = rotationSpeed || Math.random();
+      this.appTicker?.add(this.tickerCallback);
+      this.appTicker?.start();
+    } else {
+      console.warn("Wheel is already running!");
+    }
   };
 }

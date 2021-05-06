@@ -39,5 +39,3 @@ const submitMembers = () => {
 
 const submitBtn = document.getElementById("submit-button");
 submitBtn.addEventListener("click", submitMembers);
-
-console.log(window.lotteryWheel);
