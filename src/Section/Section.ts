@@ -5,7 +5,7 @@ import { CalculationUtils } from "../utils";
 export type SectionGetter = (
   member: CompleteMember,
   index: number
-) => PIXI.Container;
+) => MemberSection;
 export type SliceGetterFn = (
   member: CompleteMember,
   index: number
@@ -15,13 +15,18 @@ export type LabelGetterFn = (
   index: number
 ) => PIXI.Container;
 
+export type MemberSection = PIXI.Container & {
+  member: CompleteMember;
+  getGraphics: () => PIXI.Graphics;
+};
+
 export namespace Section {
   export const createSectionGetter = (
     calculationUtils: CalculationUtils
   ): SectionGetter => {
     const sliceGetter = createSliceGetter(calculationUtils);
     const labelGetter = createLabelGetter(calculationUtils);
-    return (member: CompleteMember, index: number): PIXI.Container => {
+    return (member: CompleteMember, index: number): MemberSection => {
       const section = new PIXI.Container();
 
       const sectionSlice = sliceGetter(member, index);
@@ -30,7 +35,10 @@ export namespace Section {
       section.addChild(sectionSlice);
       section.addChild(sectionLabel);
 
-      return section;
+      (section as MemberSection).member = member;
+      (section as MemberSection).getGraphics = () => sectionSlice;
+
+      return section as MemberSection;
     };
   };
 

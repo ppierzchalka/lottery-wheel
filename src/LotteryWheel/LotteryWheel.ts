@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { Section } from "../Section";
+import { MemberSection, Section } from "../Section";
 import { CalculationUtils, sayHello } from "../utils";
 import { hitTest } from "../utils/hitTest";
 import { ValidationUtils } from "../utils/ValidationUtils";
@@ -22,7 +22,7 @@ export class LotteryWheel {
   private rotationSpeed: number = 0;
   private calculationUtils: CalculationUtils;
   private pointerArrow: PIXI.Container | null = null;
-  private memberSections: PIXI.Container[] = [];
+  private memberSections: MemberSection[] = [];
   private appTicker: PIXI.Ticker | null = null;
   private tickerCallback?: PIXI.TickerCallback<any>;
 
@@ -98,7 +98,7 @@ export class LotteryWheel {
     this.wheelHousing && this.wheelHousing.destroy();
   };
 
-  private createSections = (): PIXI.Container[] => {
+  private createSections = (): MemberSection[] => {
     const sectionGetter = Section.createSectionGetter(this.calculationUtils);
     return this.members.map(sectionGetter);
   };
@@ -126,7 +126,7 @@ export class LotteryWheel {
           const hit = this.memberSections?.reduce<PIXI.Container | null>(
             (result, section) => {
               if (this.pointerArrow) {
-                if (hitTest(section, this.pointerArrow)) {
+                if (hitTest(this.pointerArrow, section)) {
                   return section;
                 }
               }
